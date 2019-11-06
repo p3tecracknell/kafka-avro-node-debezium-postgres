@@ -1,0 +1,30 @@
+{
+  "name": "kafka-avro-node-debezium-postgres",
+  "version": "0.0.1",
+  "description": "A library to read Kafka messages populated by Debezium (Postgresql)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/p3tecracknell/kafka-avro-node-debezium-postgres.git"
+  },
+  "keywords": [
+    "kafka",
+    "avro",
+    "node",
+    "debezium",
+    "postgres"
+  ],
+  "author": "Pete Cracknell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/p3tecracknell/kafka-avro-node-debezium-postgres/issues"
+  },
+  "homepage": "https://github.com/p3tecracknell/kafka-avro-node-debezium-postgres#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "kafka-avro": "^3.0.0"
+  }
+}
