@@ -1,7 +1,7 @@
 'use strict'
 
 require('dotenv').config()
-const kafkaHandler = require('./index.js')
+const Kafka = require('./index.js')
 const {
     KAFKA_BOOTSTRAP_BROKER,
     KAFKA_KEY,
@@ -39,22 +39,21 @@ async function main() {
       }
     }
 
-    await kafkaHandler.setupStream(kafkaAvroConfig, kafkaConsumerSettings)
+    const kafka = await Kafka(kafkaAvroConfig, kafkaConsumerSettings)
+    kafka.addListener('create', KAFKA_CUSTOMERS_TOPIC, async function(record) {
+        console.log('Customer created')
+        console.log(record)
+    })
+    
+    kafka.addListener('update', KAFKA_CUSTOMERS_TOPIC, async function(record) {
+        console.log('Customer updated')
+        console.log(record)
+    })
+      
+    kafka.addListener('delete', KAFKA_CUSTOMERS_TOPIC, async function(record) {
+        console.log('Customer deleted')
+        console.log(record)
+    })
 }
-
-kafkaHandler.addListener('create', KAFKA_CUSTOMERS_TOPIC, async function(record) {
-    console.log('Customer created')
-    console.log(record)
-  })
-
-kafkaHandler.addListener('update', KAFKA_CUSTOMERS_TOPIC, async function(record) {
-    console.log('Customer updated')
-    console.log(record)
-  })
-  
-  kafkaHandler.addListener('delete', KAFKA_CUSTOMERS_TOPIC, async function(record) {
-    console.log('Customer deleted')
-    console.log(record)
-  })
 
 main()
