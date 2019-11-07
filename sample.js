@@ -42,17 +42,17 @@ async function main() {
     await kafkaHandler.setupStream(kafkaAvroConfig, kafkaConsumerSettings)
 }
 
-kafkaHandler.onCreate(KAFKA_CUSTOMERS_TOPIC, async function(record) {
+kafkaHandler.addListener('create', KAFKA_CUSTOMERS_TOPIC, async function(record) {
     console.log('Customer created')
     console.log(record)
   })
-  
-kafkaHandler.onUpdate(KAFKA_CUSTOMERS_TOPIC, async function(record) {
+
+kafkaHandler.addListener('update', KAFKA_CUSTOMERS_TOPIC, async function(record) {
     console.log('Customer updated')
     console.log(record)
   })
   
-  kafkaHandler.onDelete(KAFKA_CUSTOMERS_TOPIC, async function(record) {
+  kafkaHandler.addListener('delete', KAFKA_CUSTOMERS_TOPIC, async function(record) {
     console.log('Customer deleted')
     console.log(record)
   })

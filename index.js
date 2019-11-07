@@ -9,20 +9,15 @@ const DEBEZIUM_OP_DELETE = 'd'
 
 let stream, topicFunctionGroups = {}
 
-function setupHandler(topic, fn, event, parsedType) {
-    if (!topicFunctionGroups[topic]) topicFunctionGroups[topic] = {}
-
-    topicFunctionGroups[topic][event] = async (message) => {
-        const record = message.parsed[parsedType][topic + '.Value']
-        await fn(record)
+async function executeListeners(event, topic, message) {
+    const topicFunctionGroup = topicFunctionGroups[topic]
+    const listeners = topicFunctionGroup[event]
+    for (let listener of listeners) {
+        await listener(message)
     }
 }
 
 module.exports = {
-    onCreate: async (topic, fn) => setupHandler(topic, fn, 'create', 'after'),
-    onUpdate: async (topic, fn) => setupHandler(topic, fn, 'update', 'after'),
-    onDelete: async (topic, fn) => setupHandler(topic, fn, 'delete', 'before'),
-
     setupStream: async function(kafkaAvroConfig, consumerSettings) {
         const kafkaAvro = new KafkaAvro(kafkaAvroConfig)
         const topics = kafkaAvroConfig.topics
@@ -37,7 +32,6 @@ module.exports = {
         stream.on('ready', () => {
             console.log('Connected to consumer')
             stream.subscribe(topics)
-            
             stream.consume()
         
             stream.on('data', async function (message) {
@@ -46,14 +40,36 @@ module.exports = {
                 if (!parsed) return // TODO investigate. I believe there are 2 delete records
                 
                 const operation = parsed.op
-                const topicFunctionGroup = topicFunctionGroups[topic]
-                if (operation === DEBEZIUM_OP_CREATE) await topicFunctionGroup.create(message)
-                else if (operation === DEBEZIUM_OP_UPDATE) await topicFunctionGroup.update(message)
-                else if (operation === DEBEZIUM_OP_DELETE) await topicFunctionGroup.delete(message)
+                if (operation === DEBEZIUM_OP_CREATE) await executeListeners('create', topic, message)
+                else if (operation === DEBEZIUM_OP_UPDATE) await executeListeners('update', topic, message)
+                else if (operation === DEBEZIUM_OP_DELETE) await executeListeners('delete', topic, message)
                 stream.commitMessage(message)
             })
         
             stream.on('error', console.log)
         })
-    }      
+    },
+    addListener: async function(event, topic, fn) {
+        let parsedType
+        if (event === 'create' || event === 'update') {
+            parsedType = 'after'
+        } else if (event === 'delete') {
+            parsedType = 'before'
+        } else {
+            throw new Error('Unexpected event type. Must be create, update or delete')
+        }
+
+        if (!topicFunctionGroups[topic]) topicFunctionGroups[topic] = {
+            create: [],
+            update: [],
+            delete: []
+        }
+
+        const newListener = async (message) => {
+            const record = message.parsed[parsedType][topic + '.Value']
+            await fn(record)
+        }
+
+        topicFunctionGroups[topic][event].push(newListener)
+    }
 }
