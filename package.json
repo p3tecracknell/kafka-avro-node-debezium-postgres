@@ -1,6 +1,6 @@
 {
   "name": "kafka-avro-node-debezium-postgres",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A library to read Kafka messages populated by Debezium (Postgresql)",
   "main": "index.js",
   "scripts": {

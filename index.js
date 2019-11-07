@@ -10,7 +10,11 @@ const DEBEZIUM_OP_DELETE = 'd'
 let stream, topicFunctionGroups = {}
 
 async function executeListeners(event, topic, message) {
+    // Look for handlers for this topic. Stop if there aren't any setup
     const topicFunctionGroup = topicFunctionGroups[topic]
+    if (!topicFunctionGroup) return
+
+    // Look for the specific listener
     const listeners = topicFunctionGroup[event]
     for (let listener of listeners) {
         await listener(message)
